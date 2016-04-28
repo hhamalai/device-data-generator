@@ -108,8 +108,6 @@ def main():
     args = parser.parse_args()
     if args.create:
         create()
-    elif args.history:
-        generate_history()
     else:
         main_loop()
 
