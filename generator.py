@@ -48,9 +48,9 @@ host = 'localhost'
 ports = set([8083])
 clients = [{'port': port, 'host': host} for port in ports]
 
-async def do_get(session, port):
+async def do_get(session, port, query):
     with aiohttp.Timeout(5):
-        async with session.get("http://%s:%s" % (host, port) + "/query?q=CREATE%20DATABASE%20gofore") as response:
+        async with session.get("http://%s:%s" % (host, port) + "/%s") as response:
             print(response.status)
             return await response.read()
 
@@ -79,7 +79,7 @@ def create():
     loop = asyncio.get_event_loop()
     with aiohttp.ClientSession(loop=loop) as session:
         tasks = [
-                asyncio.ensure_future(do_get(session, client['port']))
+                asyncio.ensure_future(do_get(session, client['port'], 'query?q=CREATE%20DATABASE%20gofore'))
             for client in clients]
 
         loop.run_until_complete(asyncio.wait(tasks))
@@ -89,14 +89,12 @@ def create():
 def main_loop():
     loop = asyncio.get_event_loop()
     with aiohttp.ClientSession(loop=loop) as session:
-        i = 0
         while True:
             generate_measurements(devices)
-            i = i + 1
             round_msg = generate_message(devices)
             tasks = [
-                asyncio.ensure_future(do_post(session, client['port'], devices))
-                for client in clients]
+                asyncio.ensure_future(do_post(session, client['port'], devices)) for client in clients
+            ]
 
             loop.run_until_complete(asyncio.wait(tasks))
             time.sleep(1)
